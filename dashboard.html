@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <title>Mestinon GI-Ereignisse Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <style>
+        body { font-family: sans-serif; }
+        #controls { margin: 1em 0; }
+    </style>
+</head>
+<body>
+    <h1>Gastrointestinale Ereignisse nach Mestinon-Einnahme</h1>
+    <div id="controls">
+        <label for="zeitfenster">Zeitfenster nach Einnahme (Minuten): </label>
+        <input type="range" id="zeitfenster" min="30" max="720" value="720" step="30" />
+        <span id="zeitfensterWert">720</span>
+    </div>
+    <div id="plot" style="height:800px;"></div>
+
+    <script>
+        const data = [{"date": "2025-06-18T23:00:00", "type": "Durchfall", "status": "starker kWasserdurchfall", "last_einnahme_time": "2025-06-18T16:15:00", "zeit_seit_einnahme": 405.0, "interval_to_next_gi_min": 90.0, "type_index": 5}, {"date": "2025-06-19T02:30:00", "type": "Durchfall", "status": "starker Wasserdurchfall", "last_einnahme_time": "2025-06-18T16:15:00", "zeit_seit_einnahme": 615.0, "interval_to_next_gi_min": 210.0, "type_index": 5}, {"date": "2025-06-20T09:05:00", "type": "Aufsto\u00dfen", "status": "Mehrmaliges", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 130.0, "interval_to_next_gi_min": 30.0, "type_index": 0}, {"date": "2025-06-20T09:05:00", "type": "Bauchgluckern", "status": "mittel bis stark", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 130.0, "interval_to_next_gi_min": 0.0, "type_index": 2}, {"date": "2025-06-20T10:00:00", "type": "Bauchgluckern", "status": "leicht", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 185.0, "interval_to_next_gi_min": 55.0, "type_index": 2}, {"date": "2025-06-20T13:40:00", "type": "Durchfall", "status": "Wasserdurchfall", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 405.0, "interval_to_next_gi_min": 220.0, "type_index": 5}, {"date": "2025-06-20T14:20:00", "type": "Bl\u00e4hungen", "status": "Bl\u00e4hbauch", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 445.0, "interval_to_next_gi_min": 40.0, "type_index": 4}, {"date": "2025-06-22T08:25:00", "type": "Aufsto\u00dfen", "status": "leicht", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 45.0, "interval_to_next_gi_min": 15.0, "type_index": 0}, {"date": "2025-06-22T08:50:00", "type": "Bauchgrummeln", "status": "leicht", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 70.0, "interval_to_next_gi_min": 25.0, "type_index": 3}, {"date": "2025-06-22T10:05:00", "type": "Aufsto\u00dfen", "status": "leicht", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 145.0, "interval_to_next_gi_min": 75.0, "type_index": 0}, {"date": "2025-06-22T11:15:00", "type": "Durchfall", "status": "leicht, wenig Wasser", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 215.0, "interval_to_next_gi_min": 70.0, "type_index": 5}, {"date": "2025-06-22T16:15:00", "type": "Bauchgluckern", "status": "leicht", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 515.0, "interval_to_next_gi_min": 300.0, "type_index": 2}, {"date": "2025-06-23T10:05:00", "type": "Durchfall", "status": "mittelstark", "last_einnahme_time": "2025-06-23T09:50:00", "zeit_seit_einnahme": 15.0, "interval_to_next_gi_min": 5.0, "type_index": 5}, {"date": "2025-06-23T11:30:00", "type": "Durchfall", "status": "Wasserdurchfall mittelstarkk", "last_einnahme_time": "2025-06-23T09:50:00", "zeit_seit_einnahme": 100.0, "interval_to_next_gi_min": 85.0, "type_index": 5}, {"date": "2025-06-23T14:35:00", "type": "Wasserdurchfall", "status": "mittelstark", "last_einnahme_time": "2025-06-23T09:50:00", "zeit_seit_einnahme": 285.0, "interval_to_next_gi_min": 185.0, "type_index": 6}, {"date": "2025-06-23T16:40:00", "type": "Bl\u00e4hungen", "status": "h\u00e4ufig und start", "last_einnahme_time": "2025-06-23T09:50:00", "zeit_seit_einnahme": 410.0, "interval_to_next_gi_min": 125.0, "type_index": 4}, {"date": "2025-06-27T12:35:00", "type": "Aufsto\u00dfen", "status": "leicht", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 45.0, "interval_to_next_gi_min": 5.0, "type_index": 0}, {"date": "2025-06-27T12:45:00", "type": "Bauchgluckern", "status": "m\u00e4\u00dfig", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 55.0, "interval_to_next_gi_min": 10.0, "type_index": 2}, {"date": "2025-06-27T14:45:00", "type": "Wasserdurchfall", "status": "m\u00e4\u00dfig", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 175.0, "interval_to_next_gi_min": 120.0, "type_index": 6}, {"date": "2025-06-27T15:10:00", "type": "Wasserdurchfall", "status": "m\u00e4\u00dfig", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 200.0, "interval_to_next_gi_min": 25.0, "type_index": 6}, {"date": "2025-06-27T16:20:00", "type": "Bauchdruck", "status": "stark", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 270.0, "interval_to_next_gi_min": 70.0, "type_index": 1}, {"date": "2025-06-27T17:00:00", "type": "Bauchdruck", "status": "schwach", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 310.0, "interval_to_next_gi_min": 40.0, "type_index": 1}];
+        const plotDiv = document.getElementById('plot');
+        const rangeInput = document.getElementById('zeitfenster');
+        const rangeValue = document.getElementById('zeitfensterWert');
+
+        const typeLabels = ["Aufsto\u00dfen", "Bauchdruck", "Bauchgluckern", "Bauchgrummeln", "Bl\u00e4hungen", "Durchfall", "Wasserdurchfall"];
+
+        function plot(filteredData) {
+            const einnahmen = [...new Set(filteredData.map(e => e.last_einnahme_time))];
+            const traces = einnahmen.map(einnahme => {
+                const gruppe = filteredData.filter(d => d.last_einnahme_time === einnahme);
+                return {
+                    x: gruppe.map(d => d.zeit_seit_einnahme),
+                    y: gruppe.map(d => d.type_index),
+                    mode: 'markers+lines',
+                    name: einnahme.slice(0, 16),
+                    marker: { size: 10 },
+                    text: gruppe.map(d => `${d.type}: ${d.status}<br>${new Date(d.date).toLocaleString()}`),
+                    hoverinfo: 'text'
+                };
+            });
+            Plotly.newPlot(plotDiv, traces, {
+                title: 'GI-Ereignisse nach Einnahme',
+                xaxis: { title: 'Minuten seit Einnahme', range: [0, parseInt(rangeInput.value)] },
+                yaxis: {
+                    title: 'Ereignistyp',
+                    tickmode: 'array',
+                    tickvals: typeLabels.map((_, i) => i),
+                    ticktext: typeLabels
+                },
+                height: 800,
+                margin: { t: 50, r: 40 }
+            });
+        }
+
+        function updatePlot() {
+            const maxTime = parseInt(rangeInput.value);
+            rangeValue.textContent = maxTime;
+            const filtered = data.filter(d => d.zeit_seit_einnahme <= maxTime);
+            plot(filtered);
+        }
+
+        rangeInput.addEventListener('input', updatePlot);
+        updatePlot();
+    </script>
+</body>
+</html>
