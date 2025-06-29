@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mestinon Einnahme Protokoll Dashboard</title>
+    <!-- Add D3.js library -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -119,6 +121,65 @@
         .axis-label {
             font-size: 12px;
             fill: #555;
+        }
+        
+        /* Zoom controls styling */
+        .zoom-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+        
+        .zoom-controls button {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 14px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin: 0 3px;
+            transition: background 0.2s;
+        }
+        
+        .zoom-controls button:hover {
+            background: #e9ecef;
+        }
+        
+        .zoom-controls button:active {
+            background: #dee2e6;
+        }
+        
+        .zoom-controls .zoom-level {
+            margin: 0 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .zoom-tooltip {
+            position: absolute;
+            top: 45px;
+            right: 10px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 8px;
+            font-size: 12px;
+            max-width: 220px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+        
+        .zoom-controls:hover + .zoom-tooltip {
+            opacity: 1;
         }
         
         @media (max-width: 768px) {
@@ -364,6 +425,85 @@
             
             const colorScale = d3.scaleOrdinal(d3.schemeCategory10)
                 .domain(eventTypes);
+                
+            // Add zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.5, 5])  // Limit zoom level between 0.5x and 5x
+                .on('zoom', zoomed);
+                
+            // Apply zoom behavior to SVG
+            d3.select(svg).call(zoom);
+            
+            // Create a group for all elements that should be zoomed
+            const zoomGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            zoomGroup.setAttribute('class', 'zoom-group');
+            g.appendChild(zoomGroup);
+            
+            // Create a separate group for circles to maintain their aspect ratio
+            const circlesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            circlesGroup.setAttribute('class', 'circles-group');
+            zoomGroup.appendChild(circlesGroup);
+            
+            // Create a separate group for lines
+            const linesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            linesGroup.setAttribute('class', 'lines-group');
+            zoomGroup.appendChild(linesGroup);
+            
+            // Create a separate group for medication markers
+            const markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            markersGroup.setAttribute('class', 'markers-group');
+            zoomGroup.appendChild(markersGroup);
+            
+            // Track current zoom level
+            let currentZoomLevel = 1;
+            
+            // Update zoom level display
+            function updateZoomLevel(level) {
+                currentZoomLevel = level;
+                const zoomLevelEl = document.querySelector('.zoom-level');
+                if (zoomLevelEl) {
+                    zoomLevelEl.textContent = `Zoom: ${Math.round(level * 100)}%`;
+                }
+            }
+            
+            // Enhanced zoom function
+            function zoomed(event) {
+                const transform = event.transform;
+                
+                // Update zoom level indicator
+                updateZoomLevel(transform.k);
+                
+                // Create the new x scale based on the zoom transform
+                const newXScale = transform.rescaleX(xScale);
+                
+                // Update the x-axis
+                d3.select(xAxisGroup).call(
+                    d3.axisBottom(newXScale)
+                        .ticks(d3.timeHour.every(4))
+                        .tickFormat(d3.timeFormat("%d.%m %H:%M"))
+                );
+                
+                // Update positions of all elements without distorting their shapes
+                d3.selectAll('.circles-group circle').each(function() {
+                    const circle = d3.select(this);
+                    const cx = parseFloat(circle.attr('data-x'));
+                    circle.attr('cx', newXScale(new Date(cx)));
+                });
+                
+                d3.selectAll('.lines-group line').each(function() {
+                    const line = d3.select(this);
+                    const x1 = parseFloat(line.attr('data-x1'));
+                    const x2 = parseFloat(line.attr('data-x2'));
+                    line.attr('x1', newXScale(new Date(x1)));
+                    line.attr('x2', newXScale(new Date(x2)));
+                });
+                
+                d3.selectAll('.markers-group rect').each(function() {
+                    const rect = d3.select(this);
+                    const x = parseFloat(rect.attr('data-x'));
+                    rect.attr('x', newXScale(new Date(x)) - 2);
+                });
+            }
             
             // Draw x-axis
             const xAxis = d3.axisBottom(xScale)
@@ -392,6 +532,64 @@
             
             d3.select(yAxisGroup).call(yAxis);
             
+            // Add enhanced zoom controls
+            const zoomControls = document.createElement('div');
+            zoomControls.className = 'zoom-controls';
+            zoomControls.innerHTML = `
+                <button id="zoom-out" title="Zoom Out (Keyboard: -)">−</button>
+                <div class="zoom-level">Zoom: 100%</div>
+                <button id="zoom-in" title="Zoom In (Keyboard: +)">+</button>
+                <button id="zoom-reset" title="Reset Zoom (Keyboard: 0)">Reset</button>
+            `;
+            visualizationEl.appendChild(zoomControls);
+            
+            // Add zoom tooltip with instructions
+            const zoomTooltip = document.createElement('div');
+            zoomTooltip.className = 'zoom-tooltip';
+            zoomTooltip.innerHTML = `
+                <strong>Zoom Controls:</strong><br>
+                • Mouse wheel to zoom in/out<br>
+                • Drag timeline to pan<br>
+                • Double-click to reset zoom<br>
+                • Keyboard: + to zoom in, - to zoom out, 0 to reset
+            `;
+            visualizationEl.appendChild(zoomTooltip);
+            
+            // Add event listeners for zoom buttons
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                d3.select(svg).transition().call(zoom.scaleBy, 1.2);
+            });
+            
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                d3.select(svg).transition().call(zoom.scaleBy, 0.8);
+            });
+            
+            document.getElementById('zoom-reset').addEventListener('click', () => {
+                d3.select(svg).transition().call(zoom.transform, d3.zoomIdentity);
+            });
+            
+            // Add keyboard shortcuts for zooming
+            document.addEventListener('keydown', (e) => {
+                // Only process if we're not in an input field
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                    if (e.key === '+' || e.key === '=') {
+                        d3.select(svg).transition().call(zoom.scaleBy, 1.2);
+                        e.preventDefault();
+                    } else if (e.key === '-' || e.key === '_') {
+                        d3.select(svg).transition().call(zoom.scaleBy, 0.8);
+                        e.preventDefault();
+                    } else if (e.key === '0') {
+                        d3.select(svg).transition().call(zoom.transform, d3.zoomIdentity);
+                        e.preventDefault();
+                    }
+                }
+            });
+            
+            // Add double-click to reset zoom
+            svg.addEventListener('dblclick', () => {
+                d3.select(svg).transition().call(zoom.transform, d3.zoomIdentity);
+            });
+            
             // Draw event data
             eventTypes.forEach(type => {
                 const typeEvents = filteredData.filter(event => event.type === type);
@@ -399,6 +597,8 @@
                 typeEvents.forEach(event => {
                     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     circle.setAttribute('cx', xScale(event.date));
+                    // Store original date for zoom calculations
+                    circle.setAttribute('data-x', event.date.getTime());
                     circle.setAttribute('cy', yScale(event.type) + config.barHeight / 2);
                     circle.setAttribute('r', 5);
                     circle.setAttribute('fill', colorScale(event.type));
@@ -425,20 +625,23 @@
                         tooltipEl.style.opacity = 0;
                     });
                     
-                    g.appendChild(circle);
+                    circlesGroup.appendChild(circle);
                     
                     // Connect points within the same event type with dotted lines
                     if (typeEvents.length > 1 && typeEvents.indexOf(event) < typeEvents.length - 1) {
                         const nextEvent = typeEvents[typeEvents.indexOf(event) + 1];
                         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                         line.setAttribute('x1', xScale(event.date));
-                        line.setAttribute('y1', yScale(event.type) + config.barHeight / 2);
                         line.setAttribute('x2', xScale(nextEvent.date));
+                        // Store original dates for zoom calculations
+                        line.setAttribute('data-x1', event.date.getTime());
+                        line.setAttribute('data-x2', nextEvent.date.getTime());
+                        line.setAttribute('y1', yScale(event.type) + config.barHeight / 2);
                         line.setAttribute('y2', yScale(event.type) + config.barHeight / 2);
                         line.setAttribute('stroke', colorScale(event.type));
                         line.setAttribute('stroke-width', 1);
                         line.setAttribute('stroke-dasharray', '3,3');
-                        g.appendChild(line);
+                        linesGroup.appendChild(line);
                     }
                 });
             });
@@ -448,11 +651,13 @@
             medicationEvents.forEach(event => {
                 const marker = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 marker.setAttribute('x', xScale(event.date) - 2);
+                // Store original date for zoom calculations
+                marker.setAttribute('data-x', event.date.getTime());
                 marker.setAttribute('y', 0);
                 marker.setAttribute('width', 4);
                 marker.setAttribute('height', (config.barHeight + config.barPadding) * eventTypes.length);
                 marker.setAttribute('fill', 'rgba(255, 0, 0, 0.1)');
-                g.insertBefore(marker, g.firstChild);
+                markersGroup.appendChild(marker);
             });
         }
 
@@ -463,28 +668,22 @@
 
         // Initialize the dashboard
         async function initDashboard() {
-            // Add D3.js library (required for visualization)
-            const d3Script = document.createElement('script');
-            d3Script.src = 'https://d3js.org/d3.v7.min.js';
-            d3Script.onload = async function() {
-                // Load and process data
-                const rawData = await loadData();
-                if (!rawData) return;
-                
-                originalData = processData(rawData);
-                filteredData = originalData.events;
-                
-                // Create filters and legend
-                createFilters();
-                createLegend();
-                
-                // Create initial visualization
-                createVisualization();
-                
-                // Handle window resize
-                window.addEventListener('resize', debounce(updateVisualization, 250));
-            };
-            document.head.appendChild(d3Script);
+            // Load and process data
+            const rawData = await loadData();
+            if (!rawData) return;
+            
+            originalData = processData(rawData);
+            filteredData = originalData.events;
+            
+            // Create filters and legend
+            createFilters();
+            createLegend();
+            
+            // Create initial visualization
+            createVisualization();
+            
+            // Handle window resize
+            window.addEventListener('resize', debounce(updateVisualization, 250));
         }
 
         // Helper function to debounce resize events

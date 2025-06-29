@@ -17,7 +17,9 @@
         "Place your results below the legend",
         "Place the pop-up box close to the event clicked",
         "try to give estimations (extreme values and most plausible) to possible elimination half-life values.",
-        "generate a timeline graoh for the protocol data"
+        "generate a responsive and interactive timeline graph for the protocol data",
+        "make sure popup box is fully visible when an event is selected",
+        "make sure users will be able to use zoom in / zoom out / reset"
       ],
       "pharmaceutical-information": [
         "Wirkstoff Pyridostigminbromid Molare Masse: 261.12 g·mol-1",

@@ -85,3 +85,5 @@ turbo/
 
 # TypeScript
 *.tsbuildinfo
+
+http___127_0_0_1_8080_*.jpeg
