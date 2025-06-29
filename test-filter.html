@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .buttons {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        iframe {
+            width: 100%;
+            height: 800px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Filter Test</h1>
+    <div class="buttons">
+        <button id="showAll">Show All</button>
+        <button id="filterEinnahme">Show Only Einnahme</button>
+        <button id="filterTwo">Show Two Types</button>
+        <button id="filterNone">Hide All</button>
+    </div>
+    <iframe id="dashboardFrame" src="dashboard.html"></iframe>
+
+    <script>
+        // Function to wait for dashboard to load and initialize
+        function waitForDashboard(callback) {
+            const iframe = document.getElementById('dashboardFrame');
+            const checkInterval = setInterval(() => {
+                try {
+                    const iframeWindow = iframe.contentWindow;
+                    if (iframeWindow && iframeWindow.document && iframeWindow.document.getElementById('event-filters')) {
+                        clearInterval(checkInterval);
+                        callback(iframeWindow);
+                    }
+                } catch (e) {
+                    console.error('Error accessing iframe content:', e);
+                }
+            }, 500);
+        }
+
+        // Function to apply filters
+        function applyFilters(iframeWindow, filterNames) {
+            // Get all filter items
+            const filterItems = iframeWindow.document.querySelectorAll('#event-filters .filter-item');
+            
+            // First click "All" to reset
+            const allFilter = iframeWindow.document.querySelector('#event-filters .filter-item');
+            if (allFilter) {
+                allFilter.click();
+            }
+            
+            // If we want specific filters, click them
+            if (filterNames.length > 0) {
+                // Click each specified filter
+                filterItems.forEach(item => {
+                    if (filterNames.includes(item.textContent.trim())) {
+                        item.click();
+                    }
+                });
+            }
+        }
+
+        // Add event listeners to buttons
+        document.getElementById('showAll').addEventListener('click', () => {
+            waitForDashboard(iframeWindow => {
+                applyFilters(iframeWindow, []);
+            });
+        });
+
+        document.getElementById('filterEinnahme').addEventListener('click', () => {
+            waitForDashboard(iframeWindow => {
+                applyFilters(iframeWindow, ['Einnahme']);
+            });
+        });
+
+        document.getElementById('filterTwo').addEventListener('click', () => {
+            waitForDashboard(iframeWindow => {
+                applyFilters(iframeWindow, ['Einnahme', 'Doppelsehen nah']);
+            });
+        });
+
+        document.getElementById('filterNone').addEventListener('click', () => {
+            waitForDashboard(iframeWindow => {
+                // First click "All" to reset
+                const allFilter = iframeWindow.document.querySelector('#event-filters .filter-item');
+                if (allFilter) {
+                    allFilter.click();
+                }
+                
+                // Then click all filter items except "All" to hide everything
+                const filterItems = iframeWindow.document.querySelectorAll('#event-filters .filter-item');
+                filterItems.forEach((item, index) => {
+                    if (index > 0) { // Skip the "All" filter
+                        if (item.classList.contains('active')) {
+                            item.click();
+                        }
+                    }
+                });
+            });
+        });
+
+        // Initialize after page load
+        window.addEventListener('load', () => {
+            waitForDashboard(iframeWindow => {
+                console.log('Dashboard loaded and ready for testing');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -238,6 +238,7 @@
         let filteredData = null;
         let eventTypes = [];
         let activeFilters = [];
+        let visibleEventTypes = []; // Array to track which event types are visible
         
         // Elements
         const visualizationEl = document.getElementById('visualization');
@@ -348,10 +349,13 @@
         function filterData() {
             if (activeFilters.length === 0) {
                 filteredData = originalData.events;
+                visibleEventTypes = [...eventTypes]; // All event types are visible
             } else {
                 filteredData = originalData.events.filter(event => 
                     activeFilters.includes(event.type)
                 );
+                // Update which event types are visible based on filtered data
+                visibleEventTypes = [...new Set(filteredData.map(event => event.type))];
             }
         }
 
@@ -398,7 +402,7 @@
             
             // Determine visualization dimensions
             const width = visualizationEl.clientWidth - config.margin.left - config.margin.right;
-            const height = (config.barHeight + config.barPadding) * eventTypes.length + config.margin.top + config.margin.bottom;
+            const height = (config.barHeight + config.barPadding) * visibleEventTypes.length + config.margin.top + config.margin.bottom;
             
             // Create the SVG element
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -419,8 +423,8 @@
                 .range([0, width]);
             
             const yScale = d3.scaleBand()
-                .domain(eventTypes)
-                .range([0, (config.barHeight + config.barPadding) * eventTypes.length])
+                .domain(visibleEventTypes)
+                .range([0, (config.barHeight + config.barPadding) * visibleEventTypes.length])
                 .padding(0.1);
             
             const colorScale = d3.scaleOrdinal(d3.schemeCategory10)
@@ -511,7 +515,7 @@
                 .tickFormat(d3.timeFormat("%d.%m %H:%M"));
             
             const xAxisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            xAxisGroup.setAttribute('transform', `translate(0,${(config.barHeight + config.barPadding) * eventTypes.length})`);
+            xAxisGroup.setAttribute('transform', `translate(0,${(config.barHeight + config.barPadding) * visibleEventTypes.length})`);
             xAxisGroup.setAttribute('class', 'x-axis');
             g.appendChild(xAxisGroup);
             
@@ -591,7 +595,7 @@
             });
             
             // Draw event data
-            eventTypes.forEach(type => {
+            visibleEventTypes.forEach(type => {
                 const typeEvents = filteredData.filter(event => event.type === type);
                 
                 typeEvents.forEach(event => {
@@ -655,7 +659,7 @@
                 marker.setAttribute('data-x', event.date.getTime());
                 marker.setAttribute('y', 0);
                 marker.setAttribute('width', 4);
-                marker.setAttribute('height', (config.barHeight + config.barPadding) * eventTypes.length);
+                marker.setAttribute('height', (config.barHeight + config.barPadding) * visibleEventTypes.length);
                 marker.setAttribute('fill', 'rgba(255, 0, 0, 0.1)');
                 markersGroup.appendChild(marker);
             });
