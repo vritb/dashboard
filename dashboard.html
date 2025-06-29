@@ -1,66 +1,533 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8" />
-    <title>GI-Dashboard (Erweitert)</title>
-    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mestinon Einnahme Protokoll Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        header {
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .patient-info {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .visualization-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        
+        #visualization {
+            min-height: 500px;
+            width: 100%;
+        }
+        
+        .controls {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-item {
+            background-color: #eee;
+            border-radius: 15px;
+            padding: 5px 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .filter-item.active {
+            background-color: #2c3e50;
+            color: white;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            max-width: 300px;
+            z-index: 100;
+        }
+        
+        .tooltip h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .tooltip p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        .axis-label {
+            font-size: 12px;
+            fill: #555;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .visualization-container {
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>Mestinon Dashboard – Gastrointestinale Ereignisse</h2>
-    <label for="zeitfenster">Zeitfenster (Min):</label>
-    <input type="range" id="zeitfenster" min="30" max="720" value="720" step="30"/>
-    <span id="zeitfensterWert">720</span>
-    <div id="plot" style="height:800px;"></div>
+    <header>
+        <h1 id="title">Mestinon Einnahme Protokoll</h1>
+        <p id="description">Erfahrungen mit Mestinon</p>
+    </header>
+    
+    <div class="patient-info">
+        <h2>Patient Information</h2>
+        <div id="patient-details"></div>
+    </div>
+    
+    <div class="controls">
+        <h2>Filter</h2>
+        <div class="filters" id="event-filters">
+            <!-- Filter items will be generated here -->
+        </div>
+    </div>
+    
+    <div class="visualization-container">
+        <div id="visualization">
+            <!-- SVG will be inserted here -->
+        </div>
+        <div class="legend" id="event-legend">
+            <!-- Legend items will be generated here -->
+        </div>
+    </div>
 
+    <div id="tooltip" class="tooltip"></div>
+    
     <script>
-        const data = [{"date": "2025-06-18T23:00:00", "type": "Durchfall", "status": "starker kWasserdurchfall", "last_einnahme_time": "2025-06-18T16:15:00", "zeit_seit_einnahme": 405.0, "interval_to_next_gi_min": 90.0, "type_index": 5, "color": "red", "hovertext": "Durchfall: starker kWasserdurchfall<br>Ereignis: 2025-06-18T23:00:00<br>Einnahme: 2025-06-18T16:15:00<br>405 Minuten danach"}, {"date": "2025-06-19T02:30:00", "type": "Durchfall", "status": "starker Wasserdurchfall", "last_einnahme_time": "2025-06-18T16:15:00", "zeit_seit_einnahme": 615.0, "interval_to_next_gi_min": 210.0, "type_index": 5, "color": "red", "hovertext": "Durchfall: starker Wasserdurchfall<br>Ereignis: 2025-06-19T02:30:00<br>Einnahme: 2025-06-18T16:15:00<br>615 Minuten danach"}, {"date": "2025-06-20T09:05:00", "type": "Aufsto\u00dfen", "status": "Mehrmaliges", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 130.0, "interval_to_next_gi_min": 30.0, "type_index": 0, "color": "blue", "hovertext": "Aufsto\u00dfen: Mehrmaliges<br>Ereignis: 2025-06-20T09:05:00<br>Einnahme: 2025-06-20T06:55:00<br>130 Minuten danach"}, {"date": "2025-06-20T09:05:00", "type": "Bauchgluckern", "status": "mittel bis stark", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 130.0, "interval_to_next_gi_min": 0.0, "type_index": 2, "color": "green", "hovertext": "Bauchgluckern: mittel bis stark<br>Ereignis: 2025-06-20T09:05:00<br>Einnahme: 2025-06-20T06:55:00<br>130 Minuten danach"}, {"date": "2025-06-20T10:00:00", "type": "Bauchgluckern", "status": "leicht", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 185.0, "interval_to_next_gi_min": 55.0, "type_index": 2, "color": "green", "hovertext": "Bauchgluckern: leicht<br>Ereignis: 2025-06-20T10:00:00<br>Einnahme: 2025-06-20T06:55:00<br>185 Minuten danach"}, {"date": "2025-06-20T13:40:00", "type": "Durchfall", "status": "Wasserdurchfall", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 405.0, "interval_to_next_gi_min": 220.0, "type_index": 5, "color": "red", "hovertext": "Durchfall: Wasserdurchfall<br>Ereignis: 2025-06-20T13:40:00<br>Einnahme: 2025-06-20T06:55:00<br>405 Minuten danach"}, {"date": "2025-06-20T14:20:00", "type": "Bl\u00e4hungen", "status": "Bl\u00e4hbauch", "last_einnahme_time": "2025-06-20T06:55:00", "zeit_seit_einnahme": 445.0, "interval_to_next_gi_min": 40.0, "type_index": 4, "color": "pink", "hovertext": "Bl\u00e4hungen: Bl\u00e4hbauch<br>Ereignis: 2025-06-20T14:20:00<br>Einnahme: 2025-06-20T06:55:00<br>445 Minuten danach"}, {"date": "2025-06-22T08:25:00", "type": "Aufsto\u00dfen", "status": "leicht", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 45.0, "interval_to_next_gi_min": 15.0, "type_index": 0, "color": "blue", "hovertext": "Aufsto\u00dfen: leicht<br>Ereignis: 2025-06-22T08:25:00<br>Einnahme: 2025-06-22T07:40:00<br>45 Minuten danach"}, {"date": "2025-06-22T08:50:00", "type": "Bauchgrummeln", "status": "leicht", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 70.0, "interval_to_next_gi_min": 25.0, "type_index": 3, "color": "darkgreen", "hovertext": "Bauchgrummeln: leicht<br>Ereignis: 2025-06-22T08:50:00<br>Einnahme: 2025-06-22T07:40:00<br>70 Minuten danach"}, {"date": "2025-06-22T10:05:00", "type": "Aufsto\u00dfen", "status": "leicht", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 145.0, "interval_to_next_gi_min": 75.0, "type_index": 0, "color": "blue", "hovertext": "Aufsto\u00dfen: leicht<br>Ereignis: 2025-06-22T10:05:00<br>Einnahme: 2025-06-22T07:40:00<br>145 Minuten danach"}, {"date": "2025-06-22T11:15:00", "type": "Durchfall", "status": "leicht, wenig Wasser", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 215.0, "interval_to_next_gi_min": 70.0, "type_index": 5, "color": "red", "hovertext": "Durchfall: leicht, wenig Wasser<br>Ereignis: 2025-06-22T11:15:00<br>Einnahme: 2025-06-22T07:40:00<br>215 Minuten danach"}, {"date": "2025-06-22T16:15:00", "type": "Bauchgluckern", "status": "leicht", "last_einnahme_time": "2025-06-22T07:40:00", "zeit_seit_einnahme": 515.0, "interval_to_next_gi_min": 300.0, "type_index": 2, "color": "green", "hovertext": "Bauchgluckern: leicht<br>Ereignis: 2025-06-22T16:15:00<br>Einnahme: 2025-06-22T07:40:00<br>515 Minuten danach"}, {"date": "2025-06-23T10:05:00", "type": "Durchfall", "status": "mittelstark", "last_einnahme_time": "2025-06-23T09:50:00", "zeit_seit_einnahme": 15.0, "interval_to_next_gi_min": 5.0, "type_index": 5, "color": "red", "hovertext": "Durchfall: mittelstark<br>Ereignis: 2025-06-23T10:05:00<br>Einnahme: 2025-06-23T09:50:00<br>15 Minuten danach"}, {"date": "2025-06-23T11:30:00", "type": "Durchfall", "status": "Wasserdurchfall mittelstarkk", "last_einnahme_time": "2025-06-23T09:50:00", "zeit_seit_einnahme": 100.0, "interval_to_next_gi_min": 85.0, "type_index": 5, "color": "red", "hovertext": "Durchfall: Wasserdurchfall mittelstarkk<br>Ereignis: 2025-06-23T11:30:00<br>Einnahme: 2025-06-23T09:50:00<br>100 Minuten danach"}, {"date": "2025-06-23T14:35:00", "type": "Wasserdurchfall", "status": "mittelstark", "last_einnahme_time": "2025-06-23T09:50:00", "zeit_seit_einnahme": 285.0, "interval_to_next_gi_min": 185.0, "type_index": 6, "color": "black", "hovertext": "Wasserdurchfall: mittelstark<br>Ereignis: 2025-06-23T14:35:00<br>Einnahme: 2025-06-23T09:50:00<br>285 Minuten danach"}, {"date": "2025-06-23T16:40:00", "type": "Bl\u00e4hungen", "status": "h\u00e4ufig und start", "last_einnahme_time": "2025-06-23T09:50:00", "zeit_seit_einnahme": 410.0, "interval_to_next_gi_min": 125.0, "type_index": 4, "color": "pink", "hovertext": "Bl\u00e4hungen: h\u00e4ufig und start<br>Ereignis: 2025-06-23T16:40:00<br>Einnahme: 2025-06-23T09:50:00<br>410 Minuten danach"}, {"date": "2025-06-27T12:35:00", "type": "Aufsto\u00dfen", "status": "leicht", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 45.0, "interval_to_next_gi_min": 5.0, "type_index": 0, "color": "blue", "hovertext": "Aufsto\u00dfen: leicht<br>Ereignis: 2025-06-27T12:35:00<br>Einnahme: 2025-06-27T11:50:00<br>45 Minuten danach"}, {"date": "2025-06-27T12:45:00", "type": "Bauchgluckern", "status": "m\u00e4\u00dfig", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 55.0, "interval_to_next_gi_min": 10.0, "type_index": 2, "color": "green", "hovertext": "Bauchgluckern: m\u00e4\u00dfig<br>Ereignis: 2025-06-27T12:45:00<br>Einnahme: 2025-06-27T11:50:00<br>55 Minuten danach"}, {"date": "2025-06-27T14:45:00", "type": "Wasserdurchfall", "status": "m\u00e4\u00dfig", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 175.0, "interval_to_next_gi_min": 120.0, "type_index": 6, "color": "black", "hovertext": "Wasserdurchfall: m\u00e4\u00dfig<br>Ereignis: 2025-06-27T14:45:00<br>Einnahme: 2025-06-27T11:50:00<br>175 Minuten danach"}, {"date": "2025-06-27T15:10:00", "type": "Wasserdurchfall", "status": "m\u00e4\u00dfig", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 200.0, "interval_to_next_gi_min": 25.0, "type_index": 6, "color": "black", "hovertext": "Wasserdurchfall: m\u00e4\u00dfig<br>Ereignis: 2025-06-27T15:10:00<br>Einnahme: 2025-06-27T11:50:00<br>200 Minuten danach"}, {"date": "2025-06-27T16:20:00", "type": "Bauchdruck", "status": "stark", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 270.0, "interval_to_next_gi_min": 70.0, "type_index": 1, "color": "purple", "hovertext": "Bauchdruck: stark<br>Ereignis: 2025-06-27T16:20:00<br>Einnahme: 2025-06-27T11:50:00<br>270 Minuten danach"}, {"date": "2025-06-27T17:00:00", "type": "Bauchdruck", "status": "schwach", "last_einnahme_time": "2025-06-27T11:50:00", "zeit_seit_einnahme": 310.0, "interval_to_next_gi_min": 40.0, "type_index": 1, "color": "purple", "hovertext": "Bauchdruck: schwach<br>Ereignis: 2025-06-27T17:00:00<br>Einnahme: 2025-06-27T11:50:00<br>310 Minuten danach"}];
-        const typeLabels = ["Aufsto\u00dfen", "Bauchdruck", "Bauchgluckern", "Bauchgrummeln", "Bl\u00e4hungen", "Durchfall", "Wasserdurchfall"];
-        const plotDiv = document.getElementById('plot');
-        const rangeInput = document.getElementById('zeitfenster');
-        const rangeValue = document.getElementById('zeitfensterWert');
+        // Configuration
+        const config = {
+            margin: { top: 40, right: 40, bottom: 100, left: 100 },
+            barHeight: 20,
+            barPadding: 30,
+            timeFormat: d3.timeFormat("%Y-%m-%d %H:%M"),
+            timeFormatShort: d3.timeFormat("%H:%M"),
+            dateParser: d3.timeParse("%Y-%m-%d %H:%M")
+        };
 
-        function plot(filteredData) {
-            const traces = filteredData.map((d, i) => {
+        // Data state
+        let originalData = null;
+        let filteredData = null;
+        let eventTypes = [];
+        let activeFilters = [];
+        
+        // Elements
+        const visualizationEl = document.getElementById('visualization');
+        const patientDetailsEl = document.getElementById('patient-details');
+        const eventFiltersEl = document.getElementById('event-filters');
+        const eventLegendEl = document.getElementById('event-legend');
+        const tooltipEl = document.getElementById('tooltip');
+
+        // Load the data
+        async function loadData() {
+            try {
+                const response = await fetch('data/mestinon-intake-protocol.json');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error loading data:', error);
+                visualizationEl.innerHTML = '<p>Error loading data. Please try again later.</p>';
+                return null;
+            }
+        }
+
+        // Process the data
+        function processData(data) {
+            // Update page title and description
+            document.getElementById('title').textContent = data.meta.title || 'Mestinon Einnahme Protokoll';
+            document.getElementById('description').textContent = data.meta.description || '';
+            
+            // Display patient information
+            const patientInfo = [];
+            if (data.meta.author) patientInfo.push(`<strong>Patient:</strong> ${data.meta.author}`);
+            if (data.meta.weight) patientInfo.push(`<strong>Gewicht:</strong> ${data.meta.weight}`);
+            if (data.meta.size) patientInfo.push(`<strong>Größe:</strong> ${data.meta.size}`);
+            
+            if (data.meta['medical-status'] && Array.isArray(data.meta['medical-status'])) {
+                patientInfo.push(`<strong>Medizinischer Status:</strong> ${data.meta['medical-status'].join(', ')}`);
+            }
+            
+            patientDetailsEl.innerHTML = patientInfo.join('<br>');
+            
+            // Process events
+            const events = data.events.map(event => {
                 return {
-                    x: [d.zeit_seit_einnahme],
-                    y: [d.type_index],
-                    mode: 'markers',
-                    name: d.type,
-                    marker: {
-                        size: 14,
-                        color: d.color,
-                        opacity: 0.8,
-                        line: { width: 1, color: 'black' }
-                    },
-                    text: d.hovertext,
-                    hoverinfo: 'text',
-                    showlegend: false
+                    ...event,
+                    date: config.dateParser(event.date)
                 };
+            }).filter(event => event.date !== null);
+            
+            // Sort events by date
+            events.sort((a, b) => a.date - b.date);
+            
+            // Extract unique event types
+            eventTypes = [...new Set(events.map(event => event.type))];
+            
+            return {
+                meta: data.meta,
+                events: events
+            };
+        }
+
+        // Create filters
+        function createFilters() {
+            eventFiltersEl.innerHTML = '';
+            
+            // Add "All" filter
+            const allFilter = document.createElement('div');
+            allFilter.className = 'filter-item active';
+            allFilter.textContent = 'Alle';
+            allFilter.addEventListener('click', () => {
+                document.querySelectorAll('.filter-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                allFilter.classList.add('active');
+                activeFilters = [];
+                filterData();
+                updateVisualization();
             });
-            Plotly.newPlot(plotDiv, traces, {
-                title: 'GI-Ereignisse nach Einnahme (farbcodiert)',
-                xaxis: { title: 'Minuten seit Einnahme', range: [0, parseInt(rangeInput.value)] },
-                yaxis: {
-                    title: 'Ereignistyp',
-                    tickmode: 'array',
-                    tickvals: typeLabels.map((_, i) => i),
-                    ticktext: typeLabels
-                },
-                height: 800,
-                margin: { t: 50 }
+            eventFiltersEl.appendChild(allFilter);
+            
+            // Add event type filters
+            eventTypes.forEach(type => {
+                const filterItem = document.createElement('div');
+                filterItem.className = 'filter-item';
+                filterItem.textContent = type;
+                filterItem.addEventListener('click', () => {
+                    if (filterItem.classList.contains('active')) {
+                        filterItem.classList.remove('active');
+                        activeFilters = activeFilters.filter(f => f !== type);
+                    } else {
+                        filterItem.classList.add('active');
+                        activeFilters.push(type);
+                    }
+                    
+                    // If no filters are active, activate "All"
+                    if (activeFilters.length === 0) {
+                        allFilter.classList.add('active');
+                    } else {
+                        allFilter.classList.remove('active');
+                    }
+                    
+                    filterData();
+                    updateVisualization();
+                });
+                eventFiltersEl.appendChild(filterItem);
             });
         }
 
-        function updatePlot() {
-            const maxTime = parseInt(rangeInput.value);
-            rangeValue.textContent = maxTime;
-            const filtered = data.filter(d => d.zeit_seit_einnahme <= maxTime);
-            plot(filtered);
+        // Filter data based on active filters
+        function filterData() {
+            if (activeFilters.length === 0) {
+                filteredData = originalData.events;
+            } else {
+                filteredData = originalData.events.filter(event => 
+                    activeFilters.includes(event.type)
+                );
+            }
         }
 
-        rangeInput.addEventListener('input', updatePlot);
-        updatePlot();
+        // Create the legend
+        function createLegend() {
+            eventLegendEl.innerHTML = '';
+            
+            // Generate colors for each event type
+            const colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+                .domain(eventTypes);
+            
+            // Create legend items
+            eventTypes.forEach(type => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'legend-color';
+                colorBox.style.backgroundColor = colorScale(type);
+                
+                const label = document.createElement('span');
+                label.textContent = type;
+                
+                legendItem.appendChild(colorBox);
+                legendItem.appendChild(label);
+                eventLegendEl.appendChild(legendItem);
+            });
+        }
+
+        // Create the visualization
+        function createVisualization() {
+            if (!originalData || !originalData.events || originalData.events.length === 0) {
+                visualizationEl.innerHTML = '<p>Keine Daten verfügbar.</p>';
+                return;
+            }
+            
+            // Clear previous visualization
+            visualizationEl.innerHTML = '';
+            
+            // Determine time range
+            const timeExtent = d3.extent(originalData.events, d => d.date);
+            timeExtent[0] = new Date(timeExtent[0].getTime() - 1000 * 60 * 60); // 1 hour before first event
+            timeExtent[1] = new Date(timeExtent[1].getTime() + 1000 * 60 * 60); // 1 hour after last event
+            
+            // Determine visualization dimensions
+            const width = visualizationEl.clientWidth - config.margin.left - config.margin.right;
+            const height = (config.barHeight + config.barPadding) * eventTypes.length + config.margin.top + config.margin.bottom;
+            
+            // Create the SVG element
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', height);
+            svg.setAttribute('viewBox', `0 0 ${width + config.margin.left + config.margin.right} ${height}`);
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            visualizationEl.appendChild(svg);
+            
+            // Create the main group element
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${config.margin.left},${config.margin.top})`);
+            svg.appendChild(g);
+            
+            // Create scales
+            const xScale = d3.scaleTime()
+                .domain(timeExtent)
+                .range([0, width]);
+            
+            const yScale = d3.scaleBand()
+                .domain(eventTypes)
+                .range([0, (config.barHeight + config.barPadding) * eventTypes.length])
+                .padding(0.1);
+            
+            const colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+                .domain(eventTypes);
+            
+            // Draw x-axis
+            const xAxis = d3.axisBottom(xScale)
+                .ticks(d3.timeHour.every(4))
+                .tickFormat(d3.timeFormat("%d.%m %H:%M"));
+            
+            const xAxisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            xAxisGroup.setAttribute('transform', `translate(0,${(config.barHeight + config.barPadding) * eventTypes.length})`);
+            xAxisGroup.setAttribute('class', 'x-axis');
+            g.appendChild(xAxisGroup);
+            
+            d3.select(xAxisGroup).call(xAxis)
+                .selectAll("text")
+                .attr("y", 10)
+                .attr("x", -8)
+                .attr("dy", ".35em")
+                .attr("transform", "rotate(-45)")
+                .style("text-anchor", "end");
+            
+            // Draw y-axis
+            const yAxis = d3.axisLeft(yScale);
+            
+            const yAxisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            yAxisGroup.setAttribute('class', 'y-axis');
+            g.appendChild(yAxisGroup);
+            
+            d3.select(yAxisGroup).call(yAxis);
+            
+            // Draw event data
+            eventTypes.forEach(type => {
+                const typeEvents = filteredData.filter(event => event.type === type);
+                
+                typeEvents.forEach(event => {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', xScale(event.date));
+                    circle.setAttribute('cy', yScale(event.type) + config.barHeight / 2);
+                    circle.setAttribute('r', 5);
+                    circle.setAttribute('fill', colorScale(event.type));
+                    
+                    // Add interactivity
+                    circle.addEventListener('mouseover', (e) => {
+                        tooltipEl.style.opacity = 1;
+                        tooltipEl.style.left = `${e.pageX + 10}px`;
+                        tooltipEl.style.top = `${e.pageY + 10}px`;
+                        
+                        // Format tooltip content
+                        let content = `<h3>${event.type}</h3>`;
+                        content += `<p><strong>Datum:</strong> ${config.timeFormat(event.date)}</p>`;
+                        content += `<p><strong>Status:</strong> ${event.status}</p>`;
+                        
+                        if (event.details) {
+                            content += `<p><strong>Details:</strong> ${event.details}</p>`;
+                        }
+                        
+                        tooltipEl.innerHTML = content;
+                    });
+                    
+                    circle.addEventListener('mouseout', () => {
+                        tooltipEl.style.opacity = 0;
+                    });
+                    
+                    g.appendChild(circle);
+                    
+                    // Connect points within the same event type with dotted lines
+                    if (typeEvents.length > 1 && typeEvents.indexOf(event) < typeEvents.length - 1) {
+                        const nextEvent = typeEvents[typeEvents.indexOf(event) + 1];
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', xScale(event.date));
+                        line.setAttribute('y1', yScale(event.type) + config.barHeight / 2);
+                        line.setAttribute('x2', xScale(nextEvent.date));
+                        line.setAttribute('y2', yScale(event.type) + config.barHeight / 2);
+                        line.setAttribute('stroke', colorScale(event.type));
+                        line.setAttribute('stroke-width', 1);
+                        line.setAttribute('stroke-dasharray', '3,3');
+                        g.appendChild(line);
+                    }
+                });
+            });
+            
+            // Add special marking for medication intake (Einnahme)
+            const medicationEvents = filteredData.filter(event => event.type === 'Einnahme');
+            medicationEvents.forEach(event => {
+                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                marker.setAttribute('x', xScale(event.date) - 2);
+                marker.setAttribute('y', 0);
+                marker.setAttribute('width', 4);
+                marker.setAttribute('height', (config.barHeight + config.barPadding) * eventTypes.length);
+                marker.setAttribute('fill', 'rgba(255, 0, 0, 0.1)');
+                g.insertBefore(marker, g.firstChild);
+            });
+        }
+
+        // Update the visualization
+        function updateVisualization() {
+            createVisualization();
+        }
+
+        // Initialize the dashboard
+        async function initDashboard() {
+            // Add D3.js library (required for visualization)
+            const d3Script = document.createElement('script');
+            d3Script.src = 'https://d3js.org/d3.v7.min.js';
+            d3Script.onload = async function() {
+                // Load and process data
+                const rawData = await loadData();
+                if (!rawData) return;
+                
+                originalData = processData(rawData);
+                filteredData = originalData.events;
+                
+                // Create filters and legend
+                createFilters();
+                createLegend();
+                
+                // Create initial visualization
+                createVisualization();
+                
+                // Handle window resize
+                window.addEventListener('resize', debounce(updateVisualization, 250));
+            };
+            document.head.appendChild(d3Script);
+        }
+
+        // Helper function to debounce resize events
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this, args = arguments;
+                const later = function() {
+                    timeout = null;
+                    func.apply(context, args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Initialize when the page is loaded
+        document.addEventListener('DOMContentLoaded', initDashboard);
+        
+        // Function to check for updates to the protocol file
+        async function checkForUpdates() {
+            try {
+                const response = await fetch('data/mestinon-intake-protocol.json', { 
+                    cache: 'no-store' 
+                });
+                const newData = await response.json();
+                
+                // Simple check if data has changed (comparing lengths)
+                if (originalData && originalData.events.length !== newData.events.length) {
+                    console.log('Data has changed, reloading...');
+                    originalData = processData(newData);
+                    filteredData = originalData.events;
+                    createFilters();
+                    createLegend();
+                    updateVisualization();
+                }
+            } catch (error) {
+                console.error('Error checking for updates:', error);
+            }
+        }
+        
+        // Check for updates periodically (every 5 minutes)
+        setInterval(checkForUpdates, 5 * 60 * 1000);
     </script>
 </body>
 </html>

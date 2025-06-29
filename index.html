@@ -8,9 +8,16 @@
         body {
             font-family: sans-serif;
             margin: 2em;
+            max-width: 1000px;
+            line-height: 1.5;
         }
-        h1 {
+        h1, h2 {
             color: #2c3e50;
+        }
+        h2 {
+            margin-top: 1.5em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3em;
         }
         ul {
             line-height: 1.6;
@@ -22,15 +29,119 @@
         a:hover {
             text-decoration: underline;
         }
+        .section {
+            margin-bottom: 2em;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .instruction {
+            background-color: #f8f9fa;
+            border-left: 4px solid #1a73e8;
+            padding: 0.8em;
+            margin: 1em 0;
+        }
     </style>
 </head>
 <body>
     <h1>Mestinon Dashboard Übersicht</h1>
-    <p>Wähle eine Ansicht:</p>
-    <ul>
-        <li><a href="dashboard.html" target="_blank">📊 Gastrointestinales Dashboard (interaktiv)</a></li>
-        <li><a href="dashboard_gastro_fixed.html" target="_blank">🧪 Original-Fixed-Version (Funktionstest)</a></li>
-        <li><a href="dashboard_gastro_test.html" target="_blank">⚙️ Minimaler Debug-Test</a></li>
-    </ul>
+    
+    <div class="section">
+        <h2>Dashboard Ansichten</h2>
+        <p>Wähle eine der folgenden Ansichten für die Mestinon-Protokoll-Visualisierung:</p>
+        <ul>
+            <li><a href="./dashboard.html" target="_blank">📊 Gastrointestinales Dashboard (interaktiv)</a></li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Diagnoseinformationen</h2>
+        <p>Informationen zur Diagnose von Myasthenia Gravis:</p>
+        <ul>
+            <li><a href="./docs/how-to-diagnose-mg/mg-diagnose.md" target="_blank">📋 Leitfaden zur MG-Diagnose</a></li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>Pharmazeutische Informationen</h2>
+        <p>Vergleiche und Informationen zu Medikamenten:</p>
+        <ul>
+            <li><a href="./docs/pharmaceutical-information/Distigmin_vs_Pyridostigmin_vs_Neostigmin.pdf" target="_blank">📄 Vergleich: Distigmin vs. Pyridostigmin vs. Neostigmin (PDF)</a></li>
+            <li><a href="./docs/pharmaceutical-information/Vergleich-WirkstofffreisetzungZeitverlauf.png" target="_blank">📊 Zeitverlauf der Wirkstofffreisetzung</a></li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>Aktuelle Protokoll-Analysen</h2>
+        <p>Generierte Visualisierungen aus dem Protokoll:</p>
+        <ul>
+            <li><a href="./docs/up-to-date-protocol-analysis/Wirkungskurve-2025-06-28.png" target="_blank">📈 Wirkungskurve (28.06.2025)</a></li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>Über das Protokoll-Update-System</h2>
+        <p>
+            Diese Dashboards visualisieren Daten aus der <code>mestinon-intake-protocol.json</code> Datei, die alle 
+            Ereignisse im Zusammenhang mit der Mestinon/Pyridostigminbromid-Behandlung für Okuläre Myasthenia Gravis enthält.
+        </p>
+        <p>
+            Wann immer die Protokolldatei aktualisiert wird, kann das System automatisch alle Artefakte (Visualisierungen, Analysen) 
+            aktualisieren und in dem im Protokoll angegebenen Ausgabeverzeichnis speichern.
+        </p>
+    </div>
+    
+    <div class="section">
+        <h2>Wie man das Update-System verwendet</h2>
+        
+        <h3>Einmalige Aktualisierung</h3>
+        <div class="instruction">
+            <p>Führe diesen Befehl aus, um alle Artefakte basierend auf der aktuellen Protokolldatei zu aktualisieren:</p>
+            <code>npm run update</code>
+        </div>
+        
+        <h3>Erzwungene Aktualisierung</h3>
+        <div class="instruction">
+            <p>Führe diesen Befehl aus, um alle Artefakte zu regenerieren, auch wenn keine Änderungen an der Protokolldatei erkannt wurden:</p>
+            <code>npm run force-update</code>
+            <p>Dies ist nützlich, um sicherzustellen, dass alle Dateien im docs-Verzeichnis aktuell sind, besonders für GitHub Pages.</p>
+        </div>
+        
+        <h3>Kontinuierliche Überwachung (Automatische Updates)</h3>
+        <div class="instruction">
+            <p>Führe diesen Befehl aus, um Änderungen an der Protokolldatei zu überwachen und automatisch zu aktualisieren:</p>
+            <code>npm run watch</code>
+            <p>Dies startet einen Prozess, der bei jeder Änderung der Protokolldatei automatisch neue Artefakte generiert.</p>
+        </div>
+        
+        <h3>Lokalen Server starten</h3>
+        <div class="instruction">
+            <p>Um die Dashboards über einen lokalen Webserver anzuzeigen:</p>
+            <code>npm start</code>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Generierte Artefakte</h2>
+        <p>
+            Das Update-System generiert die folgenden Artefakte im Ausgabeverzeichnis 
+            (standardmäßig <code>docs/up-to-date-protocol-analysis</code>):
+        </p>
+        <ul>
+            <li>SVG- und PNG-Visualisierungen mit dem aktuellen Datum (z.B. <code>Wirkungskurve-2025-06-29.png</code>)</li>
+            <li>HTML-Dateien mit eingebetteten Visualisierungen (z.B. <code>protocol-analysis-2025-06-29.html</code>)</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>Dokumentation</h2>
+        <p>
+            Weitere Informationen zum System finden Sie in der 
+            <a href="./docs/README.md" target="_blank">Dokumentation</a>.
+        </p>
+    </div>
 </body>
 </html>
