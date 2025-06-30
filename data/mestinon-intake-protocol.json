@@ -13,10 +13,10 @@
     "analysis": {
       "tasks": [
         "generate or update dashboard on Intakte of Mestinon",
-        "search for patterns within a category and among categories",
+        "search for patterns within a category and among categories. Call this section 'Muster'",
         "Use all information provided in siblings of task to produce output",
         "try to give estimations (extreme values and most plausible) to possible elimination half-life values",
-        "update index.html file so all artifacts in docs/Arztberichte-Befunde/ are listed and linked"
+        "update index.html file so all artifacts in docs/Arztberichte-Befunde/ are listed and linked. The display order within each subdir should be older first based on file name."
       ],
       "pharmaceutical-information": [
         "Wirkstoff Pyridostigminbromid Molare Masse: 261.12 g·mol-1",
