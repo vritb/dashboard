@@ -765,33 +765,23 @@ function generateInteractiveDashboard(protocol, outputDir) {
                 // Create the new x scale based on the zoom transform
                 const newXScale = transform.rescaleX(xScale);
                 
-                // Update the x-axis
-                d3.select(xAxisGroup).call(
-                    d3.axisBottom(newXScale)
-                        .ticks(d3.timeHour.every(4))
-                        .tickFormat(d3.timeFormat("%d.%m %H:%M"))
-                );
+                // Update the x-axis with proper rotated labels
+                const xAxis = d3.axisBottom(newXScale)
+                    .ticks(d3.timeHour.every(4))
+                    .tickFormat(d3.timeFormat("%d.%m %H:%M"));
                 
-                // Update positions of all elements without distorting their shapes
-                d3.selectAll('.circles-group circle').each(function() {
-                    const circle = d3.select(this);
-                    const cx = parseFloat(circle.attr('data-x'));
-                    circle.attr('cx', newXScale(new Date(cx)));
-                });
+                d3.select(xAxisGroup).call(xAxis);
                 
-                d3.selectAll('.lines-group line').each(function() {
-                    const line = d3.select(this);
-                    const x1 = parseFloat(line.attr('data-x1'));
-                    const x2 = parseFloat(line.attr('data-x2'));
-                    line.attr('x1', newXScale(new Date(x1)));
-                    line.attr('x2', newXScale(new Date(x2)));
-                });
+                // Re-apply the rotation to the axis labels after update
+                d3.select(xAxisGroup).selectAll("text")
+                    .attr("y", 10)
+                    .attr("x", -8)
+                    .attr("dy", ".35em")
+                    .attr("transform", "rotate(-45)")
+                    .style("text-anchor", "end");
                 
-                d3.selectAll('.markers-group rect').each(function() {
-                    const rect = d3.select(this);
-                    const x = parseFloat(rect.attr('data-x'));
-                    rect.attr('x', newXScale(new Date(x)) - 2);
-                });
+                // Apply the zoom transform to the entire zoom group for smoother zooming
+                d3.select('.zoom-group').attr('transform', 'scale(' + transform.k + ') translate(' + (transform.x / transform.k) + ', 0)');
             }
             
             // Draw x-axis
@@ -1186,19 +1176,9 @@ function generateInteractiveDashboard(protocol, outputDir) {
             createFilters();
             createLegend();
             
-            // Explicitly trigger visualization update after a short delay 
-            // to ensure DOM is ready
-            setTimeout(() => {
-                // Find and click the Update button to initialize the visualization
-                const updateButton = document.querySelector('.filter-item.active');
-                if (updateButton) {
-                    updateButton.click();
-                } else {
-                    // Fallback: create visualization directly if button not found
-                    createVisualization();
-                    analyzeData();
-                }
-            }, 100);
+            // Directly create visualization and analysis without relying on button clicks
+            createVisualization();
+            analyzeData();
             
             // Handle window resize
             window.addEventListener('resize', debounce(updateVisualization, 250));
