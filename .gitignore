@@ -86,8 +86,12 @@ turbo/
 # TypeScript
 *.tsbuildinfo
 
+# artifacts to ignore
 http___127_0_0_1_8080*.jpeg
 http___127_0_0_1_8080*.html
 
 http___127_0_0_1_8000*.jpeg
 http___127_0_0_1_8000*.html
+
+dashboard-debug.html
+dashboard-stable.html

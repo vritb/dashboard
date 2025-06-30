@@ -12,14 +12,11 @@
     "time-axis": "compute time interval from event time range",
     "analysis": {
       "tasks": [
-        "search for patterns within a category and among categories.",
+        "generate or update dashboard on Intakte of Mestinon",
+        "search for patterns within a category and among categories",
         "Use all information provided in siblings of task to produce output",
-        "Place your results below the legend",
-        "Place the pop-up box close to the event clicked",
-        "try to give estimations (extreme values and most plausible) to possible elimination half-life values.",
-        "generate a responsive and interactive timeline graph for the protocol data",
-        "make sure popup box is fully visible when an event is selected",
-        "make sure users will be able to use zoom in / zoom out / reset"
+        "try to give estimations (extreme values and most plausible) to possible elimination half-life values",
+        "the index.html file should have links to all artifacts visible in docs directory"
       ],
       "pharmaceutical-information": [
         "Wirkstoff Pyridostigminbromid Molare Masse: 261.12 g·mol-1",
@@ -45,7 +42,10 @@
       "the svg graph timeline should support user interaction.",
       "resizable",
       "responsive",
+      "generate a responsive and interactive timeline graph for the protocol data",
       "place legend below timeline",
+      "Place your results below the legend",
+      "Place the pop-up box close to the event clicked", 
       "Place related event types next to each other. Example: Doppelsehen, Doppelsehen nah/ferm",
       "allow drill in and drill out",
       "each event type must be shown in the graph",
@@ -56,6 +56,8 @@
       "initally show all data and time axis",
       "on click on data point should show all fields from data object in a popup box",
       "the HTML page shold be responsive to window size changes and adapt the SVG graph",
+      "make sure popup box is fully visible when an event is selected",
+      "make sure users will be able to use zoom in / zoom out / reset",
       "Use JavaScript"
     ]
   },

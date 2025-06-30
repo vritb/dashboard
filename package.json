@@ -2,11 +2,11 @@
   "name": "mg-dashboard",
   "version": "1.0.0",
   "description": "Dashboard for monitoring Mestinon treatment for Ocular Myasthenia Gravis",
-  "main": "update-protocol.js",
+  "main": "update-dashboard.js",
   "scripts": {
-    "update": "node update-protocol.js",
-    "force-update": "node update-protocol.js --force",
-    "watch": "node update-protocol.js --watch",
+    "update": "node update-dashboard.js",
+    "force-update": "node update-dashboard.js --force",
+    "watch": "node update-dashboard.js --watch",
     "start": "npx http-server -o index.html"
   },
   "keywords": [
