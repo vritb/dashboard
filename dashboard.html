@@ -182,6 +182,21 @@
             opacity: 1;
         }
         
+        .analysis-section {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .half-life-estimation {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -217,6 +232,20 @@
         </div>
         <div class="legend" id="event-legend">
             <!-- Legend items will be generated here -->
+        </div>
+    </div>
+
+    <div class="analysis-section">
+        <h2>Analyse</h2>
+        <div id="analysis-details">
+            <!-- Analysis will be generated here -->
+        </div>
+        
+        <div class="half-life-estimation">
+            <h3>Schätzung der Eliminationshalbwertszeit</h3>
+            <div id="half-life-estimation">
+                <!-- Half-life estimation will be generated here -->
+            </div>
         </div>
     </div>
 
@@ -665,6 +694,229 @@
             });
         }
 
+        // Analyze patterns in the data
+        function analyzeData() {
+            const analysisDetailsEl = document.getElementById('analysis-details');
+            if (!originalData || !originalData.events || originalData.events.length === 0) {
+                analysisDetailsEl.innerHTML = '<p>Keine Daten für die Analyse verfügbar.</p>';
+                return;
+            }
+
+            let analysisHTML = '';
+            
+            // 1. Count events by type
+            const eventCounts = {};
+            eventTypes.forEach(type => {
+                eventCounts[type] = originalData.events.filter(e => e.type === type).length;
+            });
+            
+            // Sort event types by count (descending)
+            const sortedEventTypes = [...eventTypes].sort((a, b) => eventCounts[b] - eventCounts[a]);
+            
+            analysisHTML += '<h3>Ereignishäufigkeit</h3>';
+            analysisHTML += '<ul>';
+            sortedEventTypes.forEach(type => {
+                analysisHTML += '<li><strong>' + type + ':</strong> ' + eventCounts[type] + ' Ereignisse</li>';
+            });
+            analysisHTML += '</ul>';
+            
+            // 2. Look at patterns between Einnahme and symptoms
+            const medicationEvents = originalData.events.filter(e => e.type === 'Einnahme');
+            
+            if (medicationEvents.length > 0) {
+                analysisHTML += '<h3>Muster nach Einnahme</h3>';
+                
+                // Check for symptom patterns after medication intake
+                analysisHTML += '<p>Beobachtungen nach Mestinon-Einnahme:</p>';
+                analysisHTML += '<ul>';
+                
+                // Track improvements and side effects
+                const improvements = [];
+                const sideEffects = [];
+                
+                // Analyze events after each medication intake
+                medicationEvents.forEach(med => {
+                    // Look at events within 4 hours after medication
+                    const fourHoursLater = new Date(med.date.getTime() + 4 * 60 * 60 * 1000);
+                    const eventsAfterMed = originalData.events.filter(e => 
+                        e.date > med.date && e.date <= fourHoursLater && e.type !== 'Einnahme'
+                    );
+                    
+                    eventsAfterMed.forEach(event => {
+                        const timeDiff = (event.date - med.date) / (1000 * 60); // Time difference in minutes
+                        
+                        // Check if this is a positive effect
+                        if (event.status.toLowerCase().includes('besser') || 
+                            event.status.toLowerCase().includes('gut') || 
+                            event.status.toLowerCase().includes('kein')) {
+                            
+                            if (!improvements.some(i => i.type === event.type)) {
+                                improvements.push({
+                                    type: event.type,
+                                    timeRange: [timeDiff],
+                                    status: [event.status]
+                                });
+                            } else {
+                                const idx = improvements.findIndex(i => i.type === event.type);
+                                improvements[idx].timeRange.push(timeDiff);
+                                improvements[idx].status.push(event.status);
+                            }
+                        }
+                        
+                        // Check if this is a side effect
+                        else if (event.type.toLowerCase().includes('durchfall') || 
+                                event.type.toLowerCase().includes('übelkeit') || 
+                                event.type.toLowerCase().includes('bauch') ||
+                                event.status.toLowerCase().includes('schlecht')) {
+                            
+                            if (!sideEffects.some(i => i.type === event.type)) {
+                                sideEffects.push({
+                                    type: event.type,
+                                    timeRange: [timeDiff],
+                                    status: [event.status]
+                                });
+                            } else {
+                                const idx = sideEffects.findIndex(i => i.type === event.type);
+                                sideEffects[idx].timeRange.push(timeDiff);
+                                sideEffects[idx].status.push(event.status);
+                            }
+                        }
+                    });
+                });
+                
+                // Calculate average times for improvements
+                if (improvements.length > 0) {
+                    analysisHTML += '<li><strong>Verbesserungen:</strong><ul>';
+                    improvements.forEach(imp => {
+                        const avgTime = imp.timeRange.reduce((a, b) => a + b, 0) / imp.timeRange.length;
+                        analysisHTML += `<li>${imp.type}: Durchschnittlich ${Math.round(avgTime)} Minuten nach Einnahme</li>`;
+                    });
+                    analysisHTML += '</ul></li>';
+                }
+                
+                // Calculate average times for side effects
+                if (sideEffects.length > 0) {
+                    analysisHTML += '<li><strong>Mögliche Nebenwirkungen:</strong><ul>';
+                    sideEffects.forEach(side => {
+                        const avgTime = side.timeRange.reduce((a, b) => a + b, 0) / side.timeRange.length;
+                        analysisHTML += `<li>${side.type}: Durchschnittlich ${Math.round(avgTime)} Minuten nach Einnahme</li>`;
+                    });
+                    analysisHTML += '</ul></li>';
+                }
+                
+                analysisHTML += '</ul>';
+            }
+            
+            // Display the analysis results
+            analysisDetailsEl.innerHTML = analysisHTML;
+            
+            // Estimate elimination half-life
+            estimateHalfLife();
+        }
+
+        // Estimate elimination half-life
+        function estimateHalfLife() {
+            const halfLifeEstimationEl = document.getElementById('half-life-estimation');
+            if (!originalData || !originalData.events || originalData.events.length === 0) {
+                halfLifeEstimationEl.innerHTML = '<p>Keine Daten für die Schätzung verfügbar.</p>';
+                return;
+            }
+
+            let halfLifeHTML = '';
+            
+            // Information from meta data
+            halfLifeHTML += '<p><strong>Aus den Metadaten:</strong> Mittlere Halbwertszeit ca. 1.7 Stunden, bei Dialyse bis zu 2-3 fach verlängert.</p>';
+            
+            // Look for patterns of symptom recurrence
+            const doppelsehenEvents = originalData.events.filter(e => e.type.includes('Doppelsehen'));
+            const medicationEvents = originalData.events.filter(e => e.type === 'Einnahme');
+            
+            if (doppelsehenEvents.length > 0 && medicationEvents.length > 0) {
+                // Find instances where symptoms return after medication
+                const symptomsReturn = [];
+                
+                medicationEvents.forEach(med => {
+                    // Find improvements after medication
+                    const eventsAfterMed = doppelsehenEvents.filter(e => e.date > med.date);
+                    
+                    if (eventsAfterMed.length > 0) {
+                        // First, look for improvement
+                        const improvements = eventsAfterMed.filter(e => 
+                            e.status.toLowerCase().includes('besser') || 
+                            e.status.toLowerCase().includes('gut') || 
+                            e.status.toLowerCase().includes('kein')
+                        );
+                        
+                        if (improvements.length > 0) {
+                            // Sort by time
+                            improvements.sort((a, b) => a.date - b.date);
+                            const firstImprovement = improvements[0];
+                            
+                            // Then look for deterioration after improvement
+                            const deteriorations = eventsAfterMed.filter(e => 
+                                e.date > firstImprovement.date &&
+                                (e.status.toLowerCase().includes('schlecht') || 
+                                e.status.toLowerCase().includes('stark') ||
+                                e.status.toLowerCase().includes('vollständig'))
+                            );
+                            
+                            if (deteriorations.length > 0) {
+                                // Sort by time
+                                deteriorations.sort((a, b) => a.date - b.date);
+                                const firstDeterioration = deteriorations[0];
+                                
+                                // Calculate time from medication to deterioration
+                                const timeToDeterioration = (firstDeterioration.date - med.date) / (1000 * 60 * 60); // hours
+                                
+                                symptomsReturn.push({
+                                    medication: med,
+                                    improvement: firstImprovement,
+                                    deterioration: firstDeterioration,
+                                    timeToDeterioration: timeToDeterioration
+                                });
+                            }
+                        }
+                    }
+                });
+                
+                if (symptomsReturn.length > 0) {
+                    // Calculate average time to symptom return
+                    const avgTimeToDeterioration = symptomsReturn.reduce((sum, item) => sum + item.timeToDeterioration, 0) / symptomsReturn.length;
+                    
+                    // Estimate half-life based on symptom return
+                    // Half-life is approximately time to deterioration divided by 5 (assuming 5 half-lives for significant deterioration)
+                    const estimatedHalfLife = avgTimeToDeterioration / 5;
+                    
+                    halfLifeHTML += `<p><strong>Geschätzte Halbwertszeit basierend auf Symptomwiederkehr:</strong> Ungefähr ${estimatedHalfLife.toFixed(2)} Stunden</p>`;
+                    
+                    // Consider dialysis effect
+                    const patientInfo = originalData.meta['medical-status'] || [];
+                    const dialysisPatient = patientInfo.some(info => info.toLowerCase().includes('dialyse'));
+                    
+                    if (dialysisPatient) {
+                        halfLifeHTML += '<p><strong>Mögliche Werte unter Berücksichtigung der Dialyse:</strong></p>';
+                        halfLifeHTML += '<ul>';
+                        halfLifeHTML += '<li>Minimum (ohne Dialyseeffekt): ' + (estimatedHalfLife / 3).toFixed(2) + ' Stunden</li>';
+                        halfLifeHTML += '<li>Maximum (mit Dialyseeffekt): ' + estimatedHalfLife.toFixed(2) + ' Stunden</li>';
+                        halfLifeHTML += '<li>Wahrscheinlichster Wert: ' + (estimatedHalfLife / 2).toFixed(2) + ' Stunden</li>';
+                        halfLifeHTML += '</ul>';
+                    }
+                } else {
+                    halfLifeHTML += '<p>Keine eindeutigen Muster für eine präzise Schätzung gefunden.</p>';
+                    halfLifeHTML += '<p>Basierend auf der Literatur und den Patientendaten:</p>';
+                    halfLifeHTML += '<ul>';
+                    halfLifeHTML += '<li>Normale Halbwertszeit: 1.5-2 Stunden</li>';
+                    halfLifeHTML += '<li>Bei Niereninsuffizienz/Dialyse: 3-6 Stunden (verlängert)</li>';
+                    halfLifeHTML += '</ul>';
+                }
+            } else {
+                halfLifeHTML += '<p>Nicht genügend Daten für eine Schätzung verfügbar.</p>';
+            }
+            
+            // Display the half-life estimation
+            halfLifeEstimationEl.innerHTML = halfLifeHTML;
+        }
+
         // Update the visualization
         function updateVisualization() {
             createVisualization();
@@ -685,6 +937,9 @@
             
             // Create initial visualization
             createVisualization();
+            
+            // Analyze data and display results
+            analyzeData();
             
             // Handle window resize
             window.addEventListener('resize', debounce(updateVisualization, 250));

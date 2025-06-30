@@ -16,7 +16,7 @@
         "search for patterns within a category and among categories. Call this section 'Muster'",
         "Use all information provided in siblings of task to produce output",
         "try to give estimations (extreme values and most plausible) to possible elimination half-life values",
-        "update index.html file so all artifacts in docs/Arztberichte-Befunde/ are listed and linked. The display order within each subdir should be older first based on file name."
+        "update index.html file so all artifacts in docs/Arztberichte-Befunde/ are listed and linked. The display order within each subdir should be old first based on date in filename."
       ],
       "pharmaceutical-information": [
         "Wirkstoff Pyridostigminbromid Molare Masse: 261.12 g·mol-1",
@@ -58,6 +58,7 @@
       "the HTML page shold be responsive to window size changes and adapt the SVG graph",
       "make sure popup box is fully visible when an event is selected",
       "make sure users will be able to use zoom in / zoom out / reset",
+      "Add the date of last update to the dashboard",
       "Use JavaScript"
     ]
   },
