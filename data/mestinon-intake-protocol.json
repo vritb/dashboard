@@ -240,9 +240,19 @@
     { "date": "2025-06-30 08:50", "type": "Speichelfluss", "status": "leicht" },
     { "date": "2025-06-30 08:55", "type": "Wasserdurchfall", "status": "leicht" },
     { "date": "2025-06-30 09:15", "type": "Zeilemix Laptop", "status": "leichte Besserung" },
-    { "date": "2025-06-30 19:15", "type": "Bauchschmerz", "status": "mittelstart" },
-    { "date": "2025-06-30 19:15", "type": "Bauchgluckern", "status": "mittel stark" }
-
-
+    { "date": "2025-06-30 09:15", "type": "Bauchschmerz", "status": "mittelstart" },
+    { "date": "2025-06-30 09:15", "type": "Bauchgluckern", "status": "mittel stark" },
+    { "date": "2025-06-30 09:20", "type": "Bauchgluckern", "status": "stark" },
+    { "date": "2025-06-30 09:35", "type": "Wasserdurchfall", "status": "mittel stark" },
+    { "date": "2025-06-30 09:35", "type": "Zeilemix Laptop", "status": "Besserung" },
+    { "date": "2025-06-30 09:35", "type": "Bauchschmerz", "status": "mittel stark" },
+    { "date": "2025-06-30 09:35", "type": "Doppelsehen alle Entfernungen", "status": "befriedigend" },
+    { "date": "2025-06-30 09:35", "type": "Bauchgluckern", "status": "mittel stark" },
+    { "date": "2025-06-30 10:28", "type": "Bauchgluckern", "status": "mittel stark" },
+    { "date": "2025-06-30 10:28", "type": "Bauchdruck", "status": "stark" },
+    { "date": "2025-06-30 10:28", "type": "Bauchdruck", "status": "stark" },
+    { "date": "2025-06-30 11:15", "type": "Zeilemix Laptop", "status": "gut" },
+    { "date": "2025-06-30 10:28", "type": "Zeilemix Laptop", "status": "sehr stark" },
+    { "date": "2025-06-30 11:28", "type": "Doppelsehen alle Entfernungen", "status": "stark" }
   ]
 }
