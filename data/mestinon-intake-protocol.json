@@ -40,6 +40,7 @@
     "output-directory": "docs/up-to-date-protocol-analysis",
     "output-features": [
       "the svg graph timeline should support user interaction.",
+      "choose color within an event type by severity (property 'status'). gradient green-orange-red",
       "resizable",
       "responsive",
       "generate a responsive and interactive timeline graph for the protocol data",
