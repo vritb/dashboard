@@ -4,38 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Filter Test</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        .buttons {
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 10px 15px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-        iframe {
-            width: 100%;
-            height: 800px;
-            border: 1px solid #ccc;
-        }
-    </style>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="src/styles/test-filter.css">
 </head>
 <body>
     <h1>Dashboard Filter Test</h1>
+    
+    <div class="test-description">
+        <h3>Test Description</h3>
+        <p>This page tests the filtering functionality of the dashboard by simulating user clicks on filter elements. 
+           Use the buttons below to test different filter combinations:</p>
+        <ul>
+            <li><strong>Show All</strong> - Displays all event types (default view)</li>
+            <li><strong>Show Only Einnahme</strong> - Displays only medication intake events</li>
+            <li><strong>Show Two Types</strong> - Displays a combination of two specific event types</li>
+            <li><strong>Hide All</strong> - Hides all event types</li>
+        </ul>
+    </div>
+    
     <div class="buttons">
         <button id="showAll">Show All</button>
         <button id="filterEinnahme">Show Only Einnahme</button>
         <button id="filterTwo">Show Two Types</button>
         <button id="filterNone">Hide All</button>
     </div>
+    
     <iframe id="dashboardFrame" src="dashboard.html"></iframe>
 
     <script>
@@ -45,9 +39,18 @@
             const checkInterval = setInterval(() => {
                 try {
                     const iframeWindow = iframe.contentWindow;
-                    if (iframeWindow && iframeWindow.document && iframeWindow.document.getElementById('event-filters')) {
+                    
+                    // First try the original selector
+                    let filtersContainer = iframeWindow.document.getElementById('event-filters');
+                    
+                    // Fallback to finding any element that looks like a filter container
+                    if (!filtersContainer) {
+                        filtersContainer = iframeWindow.document.querySelector('.filters, [class*="filter"]');
+                    }
+                    
+                    if (iframeWindow && iframeWindow.document && filtersContainer) {
                         clearInterval(checkInterval);
-                        callback(iframeWindow);
+                        callback(iframeWindow, filtersContainer);
                     }
                 } catch (e) {
                     console.error('Error accessing iframe content:', e);
@@ -56,12 +59,22 @@
         }
 
         // Function to apply filters
-        function applyFilters(iframeWindow, filterNames) {
-            // Get all filter items
-            const filterItems = iframeWindow.document.querySelectorAll('#event-filters .filter-item');
+        function applyFilters(iframeWindow, filtersContainer, filterNames) {
+            // Try multiple selector approaches to find filter items
+            let filterItems = filtersContainer.querySelectorAll('.filter-item');
             
-            // First click "All" to reset
-            const allFilter = iframeWindow.document.querySelector('#event-filters .filter-item');
+            // If no items found with the original selector, try alternative selectors
+            if (!filterItems.length) {
+                filterItems = filtersContainer.querySelectorAll('[class*="filter"]');
+            }
+            
+            if (!filterItems.length) {
+                console.error('Could not find filter items');
+                return;
+            }
+            
+            // First click "All" to reset (usually the first filter item)
+            const allFilter = filterItems[0];
             if (allFilter) {
                 allFilter.click();
             }
@@ -70,7 +83,8 @@
             if (filterNames.length > 0) {
                 // Click each specified filter
                 filterItems.forEach(item => {
-                    if (filterNames.includes(item.textContent.trim())) {
+                    const itemText = item.textContent.trim();
+                    if (filterNames.some(name => itemText.includes(name))) {
                         item.click();
                     }
                 });
@@ -79,33 +93,44 @@
 
         // Add event listeners to buttons
         document.getElementById('showAll').addEventListener('click', () => {
-            waitForDashboard(iframeWindow => {
-                applyFilters(iframeWindow, []);
+            waitForDashboard((iframeWindow, filtersContainer) => {
+                applyFilters(iframeWindow, filtersContainer, []);
             });
         });
 
         document.getElementById('filterEinnahme').addEventListener('click', () => {
-            waitForDashboard(iframeWindow => {
-                applyFilters(iframeWindow, ['Einnahme']);
+            waitForDashboard((iframeWindow, filtersContainer) => {
+                applyFilters(iframeWindow, filtersContainer, ['Einnahme']);
             });
         });
 
         document.getElementById('filterTwo').addEventListener('click', () => {
-            waitForDashboard(iframeWindow => {
-                applyFilters(iframeWindow, ['Einnahme', 'Doppelsehen nah']);
+            waitForDashboard((iframeWindow, filtersContainer) => {
+                applyFilters(iframeWindow, filtersContainer, ['Einnahme', 'Doppelsehen nah']);
             });
         });
 
         document.getElementById('filterNone').addEventListener('click', () => {
-            waitForDashboard(iframeWindow => {
+            waitForDashboard((iframeWindow, filtersContainer) => {
+                // First find filter items using the more resilient approach
+                let filterItems = filtersContainer.querySelectorAll('.filter-item');
+                
+                if (!filterItems.length) {
+                    filterItems = filtersContainer.querySelectorAll('[class*="filter"]');
+                }
+                
+                if (!filterItems.length) {
+                    console.error('Could not find filter items');
+                    return;
+                }
+                
                 // First click "All" to reset
-                const allFilter = iframeWindow.document.querySelector('#event-filters .filter-item');
+                const allFilter = filterItems[0];
                 if (allFilter) {
                     allFilter.click();
                 }
                 
                 // Then click all filter items except "All" to hide everything
-                const filterItems = iframeWindow.document.querySelectorAll('#event-filters .filter-item');
                 filterItems.forEach((item, index) => {
                     if (index > 0) { // Skip the "All" filter
                         if (item.classList.contains('active')) {
@@ -118,7 +143,7 @@
 
         // Initialize after page load
         window.addEventListener('load', () => {
-            waitForDashboard(iframeWindow => {
+            waitForDashboard((iframeWindow, filtersContainer) => {
                 console.log('Dashboard loaded and ready for testing');
             });
         });

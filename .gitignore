@@ -93,5 +93,8 @@ http___127_0_0_1_8080*.html
 http___127_0_0_1_8000*.jpeg
 http___127_0_0_1_8000*.html
 
+http___localhost_300*.html
+http___localhost_300*.jpeg
+
 dashboard-debug.html
 dashboard-stable.html

@@ -198,7 +198,7 @@
     { "date": "2025-06-25 11:50", "type": "Zeilenmix Laptop", "status": "sehr gut" },
     { "date": "2025-06-25 12:00", "type": "Zeilenmix Laptop", "status": "deutliche verschlechtert" },
     { "date": "2025-06-25 12:00", "type": "Doppelsehen fern", "status": "gut" },
-    { "date": "2025-06-25 12:000", "type": "Doppelsehen nah", "status": "gut" },
+    { "date": "2025-06-25 12:00", "type": "Doppelsehen nah", "status": "gut" },
     { "date": "2025-06-25 12:00", "type": "Zeilenmix Laptop", "status": "gut" },
     { "date": "2025-06-25 14:00", "type": "Doppensehen", "status": "zunehmend wechselhaft gut nach schlecht" },
     { "date": "2025-06-25 14:30", "type": "Zeilenmix Laptop", "status": "wechselnd" },
@@ -258,7 +258,28 @@
     { "date": "2025-06-30 12:30", "type": "Doppelsehen alle Entfernungen", "status": "stark" },
     { "date": "2025-06-30 13:15", "type": "Doppelsehen alle Entfernungen", "status": "befriedigend" },
     { "date": "2025-06-30 13:45", "type": "Doppelsehen alle Entfernungen", "status": "befriedigend" },
-    { "date": "2025-06-30 13:30", "type": "Zeilenmix Laptop", "status": "gut" }
-
+    { "date": "2025-06-30 13:30", "type": "Zeilenmix Laptop", "status": "gut" },
+    { "date": "2025-06-30 10:00", "type": "Einnahme", "status": "60mg" },
+    { "date": "2025-07-02 10:55", "type": "Bauchgluckern", "status": "leicht" },
+    { "date": "2025-07-02 11:20", "type": "Zeilemix Laptop", "status": "leichte Besserung" },
+    { "date": "2025-07-02 12:20", "type": "Zeilenmix Laptop", "status": "gut" },
+    { "date": "2025-07-02 12:45", "type": "Doppelsehen", "status": "Besserung" },
+    { "date": "2025-07-02 13:00", "type": "Durchfall", "status": "mäßig" },
+    { "date": "2025-07-02 13:15", "type": "Bauchdruck", "status": "stark" },
+    { "date": "2025-07-02 13:20", "type": "Doppelsehen", "status": "Besserung" },
+    { "date": "2025-07-02 13:45", "type": "Nase läuft", "status": "mäßig" },
+    { "date": "2025-07-02 14:20", "type": "Durchfall", "status": "stark" },
+    { "date": "2025-07-02 15:20", "type": "Bauchschmerz", "status": "stark" },
+    { "date": "2025-07-02 16:20", "type": "Doppelsehen", "status": "stark schwankend" },
+    { "date": "2025-07-02 16:20", "type": "Zeilenmix Laptop", "status": "gut" },
+    { "date": "2025-07-02 17:20", "type": "Zeilenmix Laptop", "status": "gut" },
+    
+    { "date": "2025-07-03 02:00", "type": "Durchfall", "status": "mittelstark" },
+    { "date": "2025-07-03 05:30", "type": "Bauchgluckern", "status": "stark" },
+    { "date": "2025-07-03 06:15", "type": "Doppelsehen alle Entfernungen", "status": "schwankend schlecht gut" },
+    { "date": "2025-07-03 13:00", "type": "Doppelsehen alle Entfernungen", "status": "schwankend schlecht gut" },
+    { "date": "2025-07-03 14:30", "type": "Doppelsehen alle Entfernungen", "status": "schlecht" },
+    { "date": "2025-07-03 15:00", "type": "Wasserdurchfall", "status": "mäßigt" }
+    
   ]
 }
